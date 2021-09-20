@@ -59,26 +59,26 @@ def menu():
         print("Invalid option. Please select a valid one!")
 
 
-class Counter():            
+class count():            
     def __init__(self):      
         self.cnt = 0
 
-    def increment(self):
+    def setvalue(self):
         self.cnt += 1
+    
+    def get(self):
+        return self.cnt
 
     def reset(self):
         self.cnt = 0
 
-    def get_value(self):
-        return self.cnt
-        
 last_pressed = 0
-count = Counter()
 GPIO.setmode(GPIO.BOARD)            
 GPIO.setup(LED_accuracy, GPIO.OUT)
 GPIO.setup(buzzer, GPIO.OUT)
 LED_pwm = GPIO.PWM(LED_accuracy, 1000)
 buzzer_pwm = GPIO.PWM(buzzer, 1000)
+count = count()
 
 
 def display_scores(count, raw_data):
@@ -174,7 +174,7 @@ def save_scores():
     # include new score
     more = 1 #trueq
     found = 0 #false
-    guess = count.get_value()
+    guess = count.get()
     while more:
       name = input("Enter your name : ")
 
@@ -230,12 +230,12 @@ num = generate_number()
 
 # Increase button pressed
 def btn_increase_pressed():
-    value = count.get_value() 
+    value = count.get() 
     GPIO.output(LED_value[0], value & 0x01)
     GPIO.output(LED_value[1], value & 0x02)
     GPIO.output(LED_value[2], value & 0x04)  
-    count.increment()
-    if count.get_value() > 7:  # reset 
+    count.setvalue()
+    if count.get() > 7:  # reset 
         count.reset()
     pass
 
@@ -261,7 +261,7 @@ def btn_guess_pressed():
         os.execl(sys.executable, sys.executable, * sys.argv)
     else:
         print ("Short Press")
-        guess = count.get_value()
+        guess = count.get()
         #print(guess)
         #print(num)
         difference = abs(guess -num)
@@ -280,29 +280,29 @@ def btn_guess_pressed():
 
 
 # LED Brightness
-def accuracy_leds(answer, guess):  
+def accuracy_leds(secretvalue, guess):  
 
-    if answer >= guess:
-        temp = guess/answer*100  
-    elif answer - guess == 0:
+    if secretvalue >= guess:
+        temp = guess/secretvalue*100  
+    elif secretvalue- guess == 0:
         LED_pwm.ChangeDutyCycle(0)  
     else:
-        temp = ((8-guess)/(8-answer))*100  
+        temp = ((8-guess)/(8-secretvalue))*100  
 
     LED_pwm.ChangeDutyCycle(temp) 
     pass
 
 # Sound Buzzer
-def trigger_buzzer(off):  
+def trigger_buzzer(difference):  
 
     buzzer_pwm.ChangeDutyCycle(50)  
-    if off == 0:
+    if difference == 0:
         GPIO.output(buzzer, GPIO.LOW)   
-    elif off == 1:
+    elif difference == 1:
         buzzer_pwm.ChangeFrequency(4)
-    elif off == 2:
+    elif difference == 2:
         buzzer_pwm.ChangeFrequency(2)
-    elif off == 3:
+    elif difference == 3:
         buzzer_pwm.ChangeFrequency(1)  
     else:
         GPIO.output(buzzer, GPIO.HIGH)  
